@@ -1,20 +1,21 @@
 Source: vyatta-login
-Section: contrib/net
+Section: net
 Priority: optional
-Maintainer: Vyatta Package Maintainers <DL-vyatta-help@att.com>
-Build-Depends:
+Maintainer: NuDanOS Maintainers <jon@fernandez.tech>
+Build-Depends: debhelper-compat (= 13),
  cpio,
- debhelper (>= 9.20160709),
- debhelper (>= 9.20160403~) | dh-autoreconf,
  dh-yang,
  dh-python,
  libvyatta-cfg-dev,
- libpam0g-dev,
-Standards-Version: 4.3.0
+ libpam0g-dev
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Vcs-Git: https://github.com/nudanos/vyatta-login.git
+Vcs-Browser: https://github.com/nudanos/vyatta-login
 
 Package: vyatta-system-login-v1-yang
 Architecture: all
-Depends:
+Depends: 
  cracklib-runtime,
  libpwquality-tools,
  vyatta-login,
@@ -34,19 +35,18 @@ Description: vyatta-system-login-radius-routing-instance-v1 module
 
 Package: vyatta-radius-system-user-login-feature
 Architecture: all
-Depends:
+Depends: 
  ${misc:Depends},
  vyatta-cfg-system,
 Breaks: vyatta-cfg-system (<< 2.20)
 Replaces: vyatta-cfg-system (<< 2.20)
-Section: contrib/net
-Priority: optional
+Section: net
 Description: Vyatta RADIUS system-user login feature flag
  The feature flag for RADIUS system-user login feature
 
 Package: vyatta-login
 Architecture: any
-Depends:
+Depends: 
  adduser,
  libpam-runtime (>= 1.0.1-5),
  libfile-temp-perl,
@@ -75,7 +75,7 @@ Description: System login command helper scripts
 
 Package: vyatta-password-renewal
 Architecture: all
-Depends:
+Depends: 
  python3,
  libpam-pwquality,
  python3-vyatta-cfgclient,

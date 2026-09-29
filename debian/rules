@@ -20,4 +20,4 @@ override_dh_auto_install:
 	mv debian/vyatta-login/usr/share/configd debian/tmp/usr/share
 
 %:
-	dh $@ --with autoreconf --with=yang
+	dh $@ --with autoreconf --with yang

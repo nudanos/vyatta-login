@@ -24,8 +24,8 @@ $(TARGET_LIB): $(OBJ)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 install: $(TARGET_LIB)
-	mkdir -p $(DESTDIR)/lib/x86_64-linux-gnu/security
-	install -m644 $(TARGET_LIB) $(DESTDIR)/lib/x86_64-linux-gnu/security
+	mkdir -p $(DESTDIR)/usr/lib/x86_64-linux-gnu/security
+	install -m644 $(TARGET_LIB) $(DESTDIR)/usr/lib/x86_64-linux-gnu/security
 
 clean:
 	rm -f $(OBJ) $(TARGET_LIB)

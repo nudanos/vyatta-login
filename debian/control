@@ -7,7 +7,11 @@ Build-Depends: debhelper-compat (= 13),
  dh-yang,
  dh-python,
  libvyatta-cfg-dev,
- libpam0g-dev
+ libpam0g-dev,
+ libfile-slurp-perl <!nocheck>,
+ libipc-run3-perl <!nocheck>,
+ libjson-perl <!nocheck>,
+ libtemplate-perl <!nocheck>
 Standards-Version: 4.7.2
 Rules-Requires-Root: no
 Vcs-Git: https://github.com/nudanos/vyatta-login.git

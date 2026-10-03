@@ -12,6 +12,9 @@ override_dh_auto_configure:
 # verbose output of unittest logs
 override_dh_auto_test:
 	dh_auto_test -- VERBOSE=1
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	prove t/
+endif
 
 # *.yang files and related templates are distributed via debian install files
 override_dh_auto_install:

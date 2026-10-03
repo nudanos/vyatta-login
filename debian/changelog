@@ -1,3 +1,11 @@
+vyatta-login (2.42) trixie; urgency=medium
+
+  * Vyatta::Login::User judges usermod/useradd by exit status, not by stderr:
+    sss_cache warns there when SSSD is not configured, and every boot
+    configuration with a login user failed to commit. t/ runs at build time.
+
+ -- NuDanOS Maintainers <jon@fernandez.tech>  Fri, 02 Oct 2026 19:19:48 -0700
+
 vyatta-login (2.41) trixie; urgency=medium
 
   * vyatta-password-renewal.prerm: delete the copied pam-configs/unix before

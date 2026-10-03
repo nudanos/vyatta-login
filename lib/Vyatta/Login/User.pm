@@ -122,8 +122,8 @@ sub _delete_user {
         warn "Disabling root account, instead of deleting\n";
         @cmd = ('usermod', '-p', '!', 'root');
         run3( \@cmd, \undef, \undef, \$result );
-        if ( $result and $result ne "" ) {
-            die "usermod of root failed: $result\n";
+        if ( $? != 0 ) {
+            die "usermod of root failed: " . ( $result // '' ) . "\n";
         }
     } elsif ( defined($login) && $login eq $user ) {
         warn "Attempting to delete current user: $user\n"
@@ -225,9 +225,11 @@ sub _update_user {
         }
     }
     push(@cmd, '-G', join( ',', @groups), $user);
+    # Judge by the exit status: usermod/useradd run sss_cache, which warns on
+    # stderr when SSSD is not configured even though the change succeeded.
     run3( \@cmd, \undef, \undef, \$result);
-    if ( $result and $result ne "") {
-        die "Attempt to change user $user failed: $result\n";
+    if ( $? != 0 ) {
+        die "Attempt to change user $user failed: " . ( $result // '' ) . "\n";
     }
     update_password_expiry( $user, $pwd, $exp ) if defined($exp);
     save_old_password( $user, $pwd, $hist ) if ( $pwd && defined($hist) );

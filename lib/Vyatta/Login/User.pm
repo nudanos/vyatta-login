@@ -243,16 +243,21 @@ sub _in_vyatta_group {
     return $groups =~ m/:.*vyatta/;
 }
 
-# returns list of dynamically allocated users (see Debian Policy Manual)
+# returns list of dynamically allocated users (see Debian Policy Manual),
+# except the TACACS+ mapped accounts tacacs0..15 (primary group tacacs):
+# vyatta-tacacs puts them in vyatta groups, and the configuration never
+# lists them
 sub _local_users {
     my @users;
+    my $tacacs_gid = getgrnam('tacacs');
 
     setpwent();
     while (
-        my ( $name, undef, $uid, undef, undef, undef, undef, undef, $shell ) =
+        my ( $name, undef, $uid, $gid, undef, undef, undef, undef, $shell ) =
         getpwent() )
     {
         next unless ( $uid >= 1000 && $uid <= 29999 );
+        next if ( defined $tacacs_gid && $gid == $tacacs_gid );
         next unless _in_vyatta_group $name;
 
         push @users, $name;

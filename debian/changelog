@@ -1,3 +1,11 @@
+vyatta-login (2.43) trixie; urgency=medium
+
+  * Do not treat the TACACS+ mapped accounts tacacs0..15 (primary group
+    tacacs) as configurable local users: update() deleted them once
+    vyatta-tacacs had put them in vyatta groups, which broke TACACS+ login.
+
+ -- NuDanOS Maintainers <jon@fernandez.tech>  Tue, 06 Oct 2026 20:07:00 -0700
+
 vyatta-login (2.42) trixie; urgency=medium
 
   * Vyatta::Login::User judges usermod/useradd by exit status, not by stderr:

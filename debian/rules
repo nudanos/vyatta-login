@@ -6,6 +6,9 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+include /usr/share/dpkg/architecture.mk
+export PAM_MODULE_DIR = /usr/lib/$(DEB_HOST_MULTIARCH)/security
+
 override_dh_auto_configure:
 	dh_auto_configure -- --prefix=/opt/vyatta --sysconfdir=/opt/vyatta/etc
 
@@ -21,6 +24,10 @@ override_dh_auto_install:
 	dh_auto_install --destdir=debian/vyatta-login
 	mkdir -p debian/tmp/usr/share
 	mv debian/vyatta-login/usr/share/configd debian/tmp/usr/share
+	mkdir -p debian/tmp/usr/lib
+	mv debian/vyatta-login/usr/lib/$(DEB_HOST_MULTIARCH) debian/tmp/usr/lib/
+	mkdir -p debian/tmp/opt/vyatta/share/perl5/Vyatta/Login
+	mv debian/vyatta-login/opt/vyatta/share/perl5/Vyatta/Login/Faillock.pm debian/tmp/opt/vyatta/share/perl5/Vyatta/Login/
 
 %:
 	dh $@ --with autoreconf --with yang

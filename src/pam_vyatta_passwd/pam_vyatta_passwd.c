@@ -15,10 +15,13 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <grp.h>
 #include <syslog.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+
+#include <jansson.h>
 
 #include <security/_pam_macros.h>
 #include <security/pam_modules.h>
@@ -35,51 +38,49 @@ static int password(pam_handle_t *pamh, struct passwd *pw,
 		    const char *cur_pw, const char *new_pw,
 		    unsigned int flag)
 {
-	struct configd_conn *conn = NULL;
-	struct configd_error err;
+	struct configd_conn conn;
+	struct configd_error err = {0};
 	const char ns[] = "vyatta-system-login-v1";
-	char name[32];
-	char input[4096];
+	const char *name;
+	json_t *payload;
+	char *input, *result;
 
-	memset(&err, 0, sizeof(err));
-
-	if (setregid(pw->pw_gid, -1) == -1) {
+	/* This runs in the forked child, before the configd connection. */
+	if ((geteuid() == 0 && setgroups(0, NULL) == -1) ||
+	    setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) == -1 ||
+	    setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) == -1) {
 		pam_syslog(pamh, LOG_DEBUG,
-			   "password - setregid() error: %s",
-			   strerror(errno));
-		goto error;
-	}
-	if (setreuid(pw->pw_uid, -1) == -1) {
-		pam_syslog(pamh, LOG_DEBUG,
-			   "password - setreuid() error: %s",
-			   strerror(errno));
-		goto error;
+			   "password - cannot assume user identity: %s", strerror(errno));
+		return -1;
 	}
 
-	conn = (struct configd_conn *)calloc(1, sizeof(struct configd_conn));
-	if (conn == NULL) {
-		pam_syslog(pamh, LOG_DEBUG,
-			   "password - configd_conn allocation failed");
-		goto error;
-	}
-	if (configd_open_connection(conn) < 0) {
+	if (configd_open_connection(&conn) < 0) {
 		pam_syslog(pamh, LOG_DEBUG,
 			   "password - configd_open_connection() error: %s",
 			   strerror(errno));
-		goto error;
+		return -1;
 	}
 
-	if (flag == VERIFY_PASSWORD) {
-		strncpy(name, "verify-password", sizeof(name));
-		snprintf(input, sizeof(input),
-			 "{\"current-password\":\"%s\"}", cur_pw);
-	} else if (flag == CHANGE_PASSWORD) {
-		strncpy(name, "change-password", sizeof(name));
-		snprintf(input, sizeof(input),
-			 "{\"current-password\":\"%s\",\"new-password\":\"%s\"}",
-			 cur_pw, new_pw);
+	if (flag == VERIFY_PASSWORD && cur_pw) {
+		name = "verify-password";
+		payload = json_pack("{s:s}", "current-password", cur_pw);
+	} else if (flag == CHANGE_PASSWORD && cur_pw && new_pw) {
+		name = "change-password";
+		payload = json_pack("{s:s,s:s}", "current-password", cur_pw,
+				    "new-password", new_pw);
+	} else {
+		goto error;
 	}
-	if (configd_call_rpc(conn, ns, name, input, &err) == NULL) {
+	if (!payload)
+		goto error;
+	input = json_dumps(payload, JSON_COMPACT);
+	json_decref(payload);
+	if (!input)
+		goto error;
+	result = configd_call_rpc(&conn, ns, name, input, &err);
+	explicit_bzero(input, strlen(input));
+	free(input);
+	if (result == NULL) {
 		pam_syslog(pamh, LOG_DEBUG,
 			   "password - configd_call_rpc() error: %s",
 			   strerror(errno));
@@ -91,14 +92,13 @@ static int password(pam_handle_t *pamh, struct passwd *pw,
 		}
 		goto error;
 	}
+	free(result);
+	configd_close_connection(&conn);
 	return 0;
 error:
 	if (err.text)
 		configd_error_free(&err);
-	if (conn) {
-		configd_close_connection(conn);
-		free(conn);
-	}
+	configd_close_connection(&conn);
 	return -1;
 }
 
@@ -180,13 +180,12 @@ pam_sm_chauthtok(pam_handle_t *pamh, int pam_flags,
 		pam_set_item(pamh, PAM_OLDAUTHTOK, resp[0]);
 		return user_password(pamh, user, pw, resp[0], NULL,
 				     VERIFY_PASSWORD);
-	} else if ((pam_flags & PAM_UPDATE_AUTHTOK) &&
-	     pam_get_item(pamh, PAM_AUTHTOK, &newpw) != PAM_SUCCESS) {
-		return PAM_SUCCESS;
 	}
-	pam_set_item(pamh, PAM_AUTHTOK, newpw);
+	if (!(pam_flags & PAM_UPDATE_AUTHTOK) ||
+	    pam_get_item(pamh, PAM_AUTHTOK, &newpw) != PAM_SUCCESS || !newpw)
+		return PAM_AUTHTOK_ERR;
 	new_pw = (const char *)newpw;
-	if (pam_get_item(pamh, PAM_OLDAUTHTOK, &oldpw) != PAM_SUCCESS) {
+	if (pam_get_item(pamh, PAM_OLDAUTHTOK, &oldpw) != PAM_SUCCESS || !oldpw) {
 		pam_syslog (pamh, LOG_DEBUG,
 			    "password - pam_get_item() on OLDAUTHTOK error: %s",
 			    strerror(errno));

@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use lib "/opt/vyatta/share/perl5";
 use Vyatta::Login::Password qw( save_old_password delete_user_from_opwdfile update_password_expiry );
+use Vyatta::Login::Faillock qw(reset_tally);
 use JSON;
 use IPC::Run3;
 
@@ -130,17 +131,15 @@ sub _delete_user {
           . "Not removing user from system to avoid unintentional lockout.\n"
           . "Please reinstate user in config to avoid mismatch with system.\n";
     } elsif ( getpwnam($user) ) {
+        reset_tally($user);
         if ( `who | grep "^$user"` ne '' ) {
             warn "$user is logged in, forcing logout\n";
             run3( ["pkill", "-HUP", "-u", $user], \undef, undef, undef );
         }
         run3( ["pkill", "-9", "-u", $user], \undef, undef, undef );
-        my @cmd = ("pam_tally", "--user", $user, "--reset", "--quiet");
-        run3( \@cmd, \undef, undef, undef );
-
         # check and cleanup sandbox
         my $svc = "cli-sandbox\@${user}.service";
-        @cmd = ("systemctl", "-q", "is-active", ${svc});
+        my @cmd = ("systemctl", "-q", "is-active", ${svc});
         run3( ["systemctl", "stop", ${svc}], \undef, undef, undef )
           if ( run3( \@cmd, \undef, undef, undef ) );
 

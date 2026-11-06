@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    perl -I/opt/vyatta/share/perl5 -MVyatta::Login::Faillock=migrate_legacy -e 'migrate_legacy()'
+fi
+#DEBHELPER#
+exit 0

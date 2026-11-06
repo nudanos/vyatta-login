@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Requires SECRET environment variable
+set -o pipefail
 
 METHOD="sha-512"
 

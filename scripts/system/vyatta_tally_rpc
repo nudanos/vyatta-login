@@ -18,17 +18,14 @@ use File::Basename;
 use JSON;
 
 use lib "/opt/vyatta/share/perl5";
-use Vyatta::Configd;
-use IPC::Run3;
+use Vyatta::Login::Faillock qw(reset_tally);
 
 sub tally_reset_user_rpc {
     my $in    = do { local $/; <> };
     my $input = decode_json($in);
     my $user  = $input->{'user'};
 
-    my @cmd= ("pam_tally", "--reset", "--user", $user);
-    die "failed to spwan sub process\n"
-      unless run3( \@cmd, \undef, \undef, \undef );
+    reset_tally($user);
     print encode_json({});
 }
 
@@ -53,7 +50,6 @@ sub call_action_by_name {
 }
 
 my %actions = (
-    "show"  => \&tally_show_rpc,
     "reset" => \&tally_reset_user_rpc,
 );
 call_action_by_name( \%actions, basename($0), "action", "" );

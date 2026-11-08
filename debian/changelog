@@ -2,6 +2,7 @@ vyatta-login (2.44) trixie; urgency=medium
 
   * Use supported password verification and safe JSON serialization.
   * Replace obsolete tally lockout with guarded PAM faillock integration.
+  * Require configd 2.16 for target-user password RPC identity handling.
 
  -- Jon Fernandez <jon@fernandez.tech>  Fri, 06 Nov 2026 12:00:00 -0700
 

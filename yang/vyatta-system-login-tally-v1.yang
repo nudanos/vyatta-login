@@ -56,8 +56,7 @@ module vyatta-system-login-tally-v1 {
 		 SPDX-License-Identifier: BSD-3-Clause
 
 		 The YANG module for vyatta-system-login-tally-v1.
-		 This is a wrapper yang for the pam_tally2.so used in
-		 pam authentication.";
+		 Configures pam_faillock for Debian's local PAM password stack.";
 
 	revision 2018-08-28 {
 		description "Initial revision of version 1.";
@@ -65,7 +64,9 @@ module vyatta-system-login-tally-v1 {
 
 	augment /system:system/system-login:login {
 		container auto-disable {
-			description "Local login account auto disable";
+			description
+				"Lock local PAM password authentication after consecutive failures
+				 within 15 minutes. Root is exempt for recovery.";
 			configd:help "Local login account auto disable";
 			presence "Enable auto disable";
 			must "not(/system:system/system-login:login/tacplus:tacplus-server)" {
@@ -75,7 +76,7 @@ module vyatta-system-login-tally-v1 {
 				configd:help "Disables user after N failed login attempts.";
 				description "Disables user after N failed login attempts.";
 				type uint16 {
-					range 1..max;
+					range "1..1024";
 				}
 				default 5;
 			}
@@ -83,7 +84,7 @@ module vyatta-system-login-tally-v1 {
 				configd:help "Disables user for N seconds after failed login attempts";
 				description "Disables user for N seconds after failed login attempts";
 				type uint32 {
-					range 1..max;
+					range "1..604800";
 				}
 				default 600;
 				units "seconds";

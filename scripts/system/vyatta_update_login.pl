@@ -21,8 +21,8 @@ use strict;
 use warnings;
 use lib "/opt/vyatta/share/perl5";
 use Vyatta::Config;
+use Vyatta::Login::Faillock qw(validate_lockout configure_lockout);
 use Getopt::Long;
-use Template;
 
 my ( $routing, $system );
 
@@ -82,20 +82,10 @@ if ( ($config->isChanged("system login auth-chain method")) && (!defined($routin
     $routing = "routing";
 } 
 
-# Disable user account after N failed login attempts
+# Check lockout prerequisites before changing any authentication profiles.
 my $n = $config->returnValue("system login auto-disable attempts");
 my $t = $config->returnValue("system login auto-disable duration");
-my $pam_dest = '/usr/share/pam-configs/vyatta-pam-tally';
-if ( defined($n) && defined($t) ) {
-    open(my $fh, '<', '/opt/vyatta/share/pam-configs/vyatta-pam-tally.template');
-    my $template = Template->new();
-    my %tree_in = ( 'PAM_TALLY_PARAMS' => "onerr=fail deny=$n unlock_time=$t" );
-    $template->process( $fh, \%tree_in, $pam_dest)
-        or die __FILE__ . ": Could not fill out vyatta-pam-tally\n";
-    close($fh);
-} else {
-    unlink $pam_dest;
-}
+my $lockout = validate_lockout($n, $t, $config, \@chain);
 
 sub write_local_user_pam_config {
     open(my $fh, ">", $local_pam_config) or die("Failed to open $local_pam_config: $!\n");
@@ -194,4 +184,4 @@ if ( defined $routing ) {
 # the local method).
 write_local_user_pam_config();
 
-system("DEBIAN_FRONTEND=noninteractive pam-auth-update");
+configure_lockout($lockout);

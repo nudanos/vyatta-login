@@ -8,12 +8,15 @@ CFLAGS += $(MY_CFLAGS)
 
 LDLIBS  += -lvyatta-util
 LDLIBS  += -lvyatta-config
+LDLIBS  += -ljansson
+LDLIBS  += -lpam
 
 LDFLAGS	+= -shared
 SRC	:= $(SRCDIR)/pam_vyatta_passwd.c
 OBJ	:= $(SRCDIR)/pam_vyatta_passwd.o
 
 TARGET_LIB	:= $(SRCDIR)/pam_vyatta_passwd.so
+PAM_MODULE_DIR ?= /usr/lib/security
 
 all: $(TARGET_LIB)
 
@@ -24,8 +27,7 @@ $(TARGET_LIB): $(OBJ)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 install: $(TARGET_LIB)
-	mkdir -p $(DESTDIR)/usr/lib/x86_64-linux-gnu/security
-	install -m644 $(TARGET_LIB) $(DESTDIR)/usr/lib/x86_64-linux-gnu/security
+	install -D -m644 $(TARGET_LIB) $(DESTDIR)$(PAM_MODULE_DIR)/pam_vyatta_passwd.so
 
 clean:
 	rm -f $(OBJ) $(TARGET_LIB)

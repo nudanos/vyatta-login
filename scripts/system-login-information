@@ -36,6 +36,7 @@ use warnings;
 
 use lib "/opt/vyatta/share/perl5";
 use Vyatta::Configd;
+use Vyatta::Login::Faillock qw(tally_counts);
 
 use JSON;
 use IO::Seekable;
@@ -64,17 +65,6 @@ sub to_iso8601 {
     return strftime( "%FT%T", localtime($time) ) . $tz;
 }
 
-
-sub get_tally_count {
-    my ($user_hash) = @_;
-    my @ret = split /\n/, `pam_tally`;
-    foreach my $account (@ret) {
-        if ( $account =~ m/User (\S+)\s*(\S+)\s*has (\S+)/ ) {
-            my ($user, $id, $count) = ($1,$2,$3);
-            push @{%{$user_hash}{$user}}, $count;
-        }
-    }
-}
 
 sub get_password_expiry {
     my $u = shift;
@@ -146,7 +136,7 @@ sub get_state {
 
     # Check tally counter
     #
-    get_tally_count(\%users);
+    my %tally = tally_counts();
 
     my $format_user_data = sub {
         my ($u)  = @_;
@@ -156,8 +146,7 @@ sub get_state {
             "type"       => @{$data}[1],
             "last-login" => @{$data}[2],
         };
-        $out->{'tally-counter'} = 0;
-        $out->{'tally-counter'} = @{$data}[3] if defined @{$data}[3];
+        $out->{'tally-counter'} = $tally{$u} // 0;
         $out->{'password-expiry'} = get_password_expiry($u);
         return $out;
     };

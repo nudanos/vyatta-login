@@ -40,6 +40,7 @@ sbin_SCRIPTS += scripts/vyatta-password-rpc
 
 share_perl5_login_DATA = lib/Vyatta/Login/User.pm
 share_perl5_login_DATA += lib/Vyatta/Login/Password.pm
+share_perl5_login_DATA += lib/Vyatta/Login/Faillock.pm
 
 vyatta_security_DATA = etc/security/pwquality.config.template
 

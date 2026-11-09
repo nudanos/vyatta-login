@@ -24,9 +24,9 @@ use Vyatta::Config;
 use Vyatta::Login::Faillock qw(validate_lockout configure_lockout);
 use Getopt::Long;
 
-my ( $routing, $system );
+my ( $routing, $system, $validate );
 
-GetOptions( "routing:s" => \$routing, "system:s" => \$system  );
+GetOptions( "routing:s" => \$routing, "system:s" => \$system, "validate" => \$validate );
 
 # This is just a simple wrapper that allows for extensiblility
 # of login types.
@@ -86,6 +86,7 @@ if ( ($config->isChanged("system login auth-chain method")) && (!defined($routin
 my $n = $config->returnValue("system login auto-disable attempts");
 my $t = $config->returnValue("system login auto-disable duration");
 my $lockout = validate_lockout($n, $t, $config, \@chain);
+exit 0 if $validate;
 
 sub write_local_user_pam_config {
     open(my $fh, ">", $local_pam_config) or die("Failed to open $local_pam_config: $!\n");

@@ -143,6 +143,7 @@ module vyatta-system-login-v1 {
 			configd:priority "400";
 			configd:help "User login";
 			configd:delete "/opt/vyatta/share/tmplscripts/system/login/configd_delete.sh";
+			configd:validate "/opt/vyatta/sbin/vyatta_update_login.pl --system --validate";
 			configd:end "/opt/vyatta/sbin/vyatta_update_login.pl --system";
 			leaf session-timeout {
 				type uint32 {

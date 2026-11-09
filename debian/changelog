@@ -4,6 +4,7 @@ vyatta-login (2.45) trixie; urgency=medium
     target-user password renewal is used.
   * Validate lockout prerequisites before commit so a failed activation
     cannot leave an unenforced policy in running configuration.
+    Keep the validator schema and helper compatible during split upgrades.
 
  -- Jon Fernandez <jon@fernandez.tech>  Mon, 09 Nov 2026 12:00:00 -0700
 

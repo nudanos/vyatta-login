@@ -4,8 +4,10 @@
 #include <string.h>
 
 static int conversation(int count, const struct pam_message **messages,
-                        struct pam_response **responses, void *password)
+                        struct pam_response **responses, void *appdata)
 {
+	const char *password = appdata;
+
 	*responses = calloc(count, sizeof(**responses));
 	if (!*responses)
 		return PAM_BUF_ERR;

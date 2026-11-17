@@ -153,7 +153,6 @@ pam_sm_chauthtok(pam_handle_t *pamh, int pam_flags,
 	const void *newpw, *oldpw;
 	struct passwd *pw;
 	const char *new_pw, *cur_pw;
-	char *resp[2] = {NULL, NULL};
 	int ret;
 
 	ret = pam_get_user(pamh, &user, NULL);
@@ -169,6 +168,8 @@ pam_sm_chauthtok(pam_handle_t *pamh, int pam_flags,
 		return PAM_USER_UNKNOWN;
 	}
 	if (pam_flags & PAM_PRELIM_CHECK) {
+		char *resp[2] = {NULL, NULL};
+
 		if (pam_prompt(pamh, PAM_PROMPT_ECHO_OFF, &resp[0],
 				"%s", "Current password: ") != PAM_SUCCESS
 				|| resp[0] == NULL) {

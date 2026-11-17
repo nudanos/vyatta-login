@@ -28,10 +28,22 @@ auth	required			pam_permit.so
 auth	required	pam_faillock.so authsucc $opts
 END
 
-sub stack_ok { return Vyatta::Login::Faillock::_local_auth_stack(@_) }
+# $code dies with a message containing $text
+sub dies_with {
+    my ( $code, $text, $name ) = @_;
+    my $lived = eval { $code->(); 1 };
+    my $error = $lived ? '(no error)' : $@;
+    return ok( index( $error, $text ) >= 0, $name ) || diag("died with: $error");
+}
+
+## no critic (Subroutines::ProtectPrivateSubs) reason: under test
+sub stack_ok { my @args = @_; return Vyatta::Login::Faillock::_local_auth_stack(@args) }
+
+## no critic (Subroutines::ProtectPrivateSubs) reason: under test
+sub auth_rules { my @args = @_; return Vyatta::Login::Faillock::_auth_rules(@args) }
 
 is_deeply(
-    [ Vyatta::Login::Faillock::_auth_rules($plain) ],
+    [ auth_rules($plain) ],
     [
         'auth [success=1 default=ignore] pam_unix.so nullok',
         'auth requisite pam_deny.so',
@@ -46,11 +58,11 @@ ok( !stack_ok( $plain, $opts ),                         '... is not a stack with
 ok( stack_ok($locked),                                  'local-only stack with lockout' );
 ok( stack_ok( $locked . "auth optional pam_cap.so\n" ), '... followed by pam_cap' );
 ok( stack_ok( $locked, $opts ),                         '... with the expected options' );
-ok( !stack_ok( $locked, $opts =~ s/deny=3/deny=4/r ),   '... but not with other options' );
+ok( !stack_ok( $locked, $opts =~ s/deny=3/deny=4/xr ),  '... but not with other options' );
 
 sub changed {
     my ( $stack, $from, $to ) = @_;
-    $stack =~ s/\Q$from\E/$to/ or die "no '$from'";
+    $stack =~ s/\Q$from\E/$to/x or die "no '$from'\n";
     return $stack;
 }
 ok(
@@ -72,6 +84,27 @@ ok(
     !stack_ok( changed( $locked, '[default=die]', 'required' ) ),
     'refused: failure recording that does not end the stack'
 );
+
+# both lockout rules changed alike: only the form of the options tells
+sub changed_all {
+    my ( $stack, $from, $to ) = @_;
+    $stack =~ s/\Q$from\E/$to/gx or die "no '$from'\n";
+    return $stack;
+}
+ok( !stack_ok( changed_all( $locked, 'dir=/run/vyatta-faillock', 'dir=/var/run/faillock' ) ),
+    'refused: both rules on another tally directory' );
+ok( !stack_ok( changed_all( $locked, 'local_users_only ', '' ) ),
+    'refused: both rules without local_users_only' );
+ok( !stack_ok( changed_all( $locked, 'unlock_time=60', 'unlock_time=60 even_deny_root' ) ),
+    'refused: both rules with an option this module does not write' );
+ok(
+    !stack_ok( changed_all( $locked, 'unlock_time=60', 'unlock_time=never' ) ),
+    'refused: both rules with a duration that is not a number'
+);
+ok( !stack_ok( $locked . "auth optional pam_exec.so /site/auth-hook\n" ),
+    'refused: another module after the lockout stack' );
+ok( !stack_ok( changed( $locked, "auth\trequired\tpam_faillock.so authsucc $opts\n", '' ) ),
+    'refused: failure recording without the success reset' );
 ok(
     !stack_ok( $plain . "auth sufficient pam_sss.so\n" ),
     'refused: another module after the stack'
@@ -101,19 +134,17 @@ for my $bad (
   )
 {
     my @show = map { $_ // 'undef' } @$bad;
-    eval { validate_lockout(@$bad) };
-    like(
-        $@,
-        qr/attempts in 1\.\.1024 and duration in 1\.\.604800 seconds/,
+    dies_with(
+        sub { validate_lockout(@$bad) },
+        'attempts in 1..1024 and duration in 1..604800 seconds',
         "validate: refuses attempts=$show[0] duration=$show[1]"
     );
 }
 
 for my $bad ( undef, '', 'a/b', "a b", [], 'no-such-user-nudanos-test' ) {
-    eval { reset_tally($bad) };
-    like(
-        $@,
-        qr/Expected an existing user to reset/,
+    dies_with(
+        sub { reset_tally($bad) },
+        'Expected an existing user to reset',
         'reset: refuses ' . ( defined $bad ? "'$bad'" : 'undef' )
     );
 }

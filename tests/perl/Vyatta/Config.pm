@@ -1,7 +1,7 @@
 package Vyatta::Config;
 use strict;
 use warnings;
-sub new          { bless {}, shift }
+sub new          { my ($class) = @_; return bless {}, $class }
 sub returnValues { return $ENV{TEST_REMOTE} ? ( "radius", "local" ) : (); }
 
 sub returnValue {
@@ -12,5 +12,7 @@ sub returnValue {
     return;
 }
 sub isChanged { return 0; }
-sub exists    { return 0; }
+
+## no critic (Subroutines::ProhibitBuiltinHomonyms) reason: as the real module
+sub exists { return 0; }
 1;

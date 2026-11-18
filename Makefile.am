@@ -14,6 +14,8 @@ vyatta_securitydir = /opt/vyatta/etc/security/
 bin_PROGRAMS =
 bin_SCRIPTS =
 sbin_SCRIPTS =
+password_rpcdir = $(sbindir)
+password_rpc_DATA = scripts/vyatta_password_persistence.py
 sysconf_DATA =
 initd_SCRIPTS =
 

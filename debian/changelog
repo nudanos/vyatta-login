@@ -1,3 +1,12 @@
+vyatta-login (2.46) trixie; urgency=medium
+
+  * Persist renewed passwords with a selective, synchronized startup update.
+  * Require startup-writer locking in configd and the legacy save utility.
+  * Keep login state available when optional history tools lack GNU options.
+  * Run password RPC and persistence regression tests during package builds.
+
+ -- Jon Fernandez <jon@fernandez.tech>  Wed, 18 Nov 2026 10:00:00 -0700
+
 vyatta-login (2.45) trixie; urgency=medium
 
   * Require configd 2.17 so upgrades refresh an active daemon before

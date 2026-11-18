@@ -1,14 +1,18 @@
 import json
 import os
+from crypt_r import crypt
 
 
 class Client:
     RUNNING = "running"
+    CANDIDATE = "candidate"
 
     def tree_get_dict(self, path, source):
-        assert source == self.RUNNING
         assert path == "system login user tester authentication encrypted-password"
-        return {"encrypted-password": os.environ["TEST_HASH"]}
+        if source == self.CANDIDATE:
+            return {"encrypted-password": self.candidate}
+        assert source == self.RUNNING
+        return {"encrypted-password": getattr(self, "running", os.environ["TEST_HASH"])}
 
     def session_setup(self, session_id):
         self.path = None
@@ -20,8 +24,10 @@ class Client:
         assert path[:6] == ["system", "login", "user", "tester", "authentication",
                            "plaintext-password"]
         self.path = path
+        self.candidate = crypt(path[-1], "$6$replacement$")
 
     def commit(self, message):
+        self.running = self.candidate
         print(json.dumps(self.path))
 
     def session_teardown(self):

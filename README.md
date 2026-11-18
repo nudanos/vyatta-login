@@ -24,3 +24,16 @@ constraints enforce the compatible validation interface. Configd refreshes an
 active service after package configuration; an explicit local `policy-rc.d`
 denial is respected and requires an administrator restart or reboot before the
 new daemon behavior is active.
+
+Password renewal updates the running password and the saved account's encrypted
+password in `/config/config.boot`. Save a newly configured local account before
+renewing its password. Renewal preserves all other saved configuration, including
+comments, and leaves unrelated API-committed changes unsaved. Ambiguous, disabled,
+malformed or unsafe startup files are rejected before the password commit.
+
+The login helper, configd 2.18 and vyatta-cfg 1.36 coordinate startup writes using
+`/run/nudanos-startup/startup.lock`. They wait up to ten seconds for another writer.
+This lock coordinates supported save paths; manual privileged writes and runtime
+administrative commits remain independent. If publication fails after the runtime
+commit, renewal reports a partial change and asks for administrator assistance
+before reboot. It does not blindly restore an earlier running configuration.

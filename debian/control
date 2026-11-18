@@ -12,7 +12,9 @@ Build-Depends: debhelper-compat (= 13),
  libfile-slurp-perl <!nocheck>,
  libipc-run3-perl <!nocheck>,
  libjson-perl <!nocheck>,
- libtemplate-perl <!nocheck>
+ libtemplate-perl <!nocheck>,
+ python3 <!nocheck>,
+ python3-crypt-r <!nocheck>
 Standards-Version: 4.7.2
 Rules-Requires-Root: no
 Vcs-Git: https://github.com/nudanos/vyatta-login.git
@@ -53,7 +55,7 @@ Package: vyatta-login
 Architecture: any
 Depends: 
  adduser,
- configd (>= 2.17),
+ configd (>= 2.18),
  libpam-modules,
  libpam-modules-bin,
  libpam-runtime (>= 1.0.1-5),
@@ -73,7 +75,7 @@ Depends:
  vyatta-debian-system-config,
  vyatta-debian-systemd-config,
  vyatta-util (>= 0.16),
- vyatta-cfg,
+ vyatta-cfg (>= 1.36),
  vyatta-password-renewal (>= 2.44),
  ${misc:Depends},
  ${perl:Depends},

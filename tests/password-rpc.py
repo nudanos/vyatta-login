@@ -15,7 +15,8 @@ PASSWORD = 'new \\t "quotes" 雪'
 class PasswordRPCTest(unittest.TestCase):
     def run_rpc(self, method, stored_hash, **fields):
         return subprocess.run(
-            [sys.executable, RPC, method], text=True, input=json.dumps(fields),
+            [sys.executable, TEST_DIR / "fixtures" / "run-password-rpc.py", RPC, method],
+            text=True, input=json.dumps(fields),
             env=dict(os.environ, PYTHONPATH=str(TEST_DIR / "fixtures"),
                      TEST_HASH=stored_hash, VCI_RPC_METADATA='{"User":"tester"}'),
             capture_output=True,

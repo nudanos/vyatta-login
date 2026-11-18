@@ -24,3 +24,15 @@ constraints enforce the compatible validation interface. Configd refreshes an
 active service after package configuration; an explicit local `policy-rc.d`
 denial is respected and requires an administrator restart or reboot before the
 new daemon behavior is active.
+
+Configd normally saves the running configuration when a commit succeeds.
+Password renewal verifies the candidate password, checks it is present in both
+RUNNING and `/config/config.boot`, and syncs the saved file before reporting
+success. It does not hold a startup-writer lock across Commit or issue an extra
+Save to hide a failed configuration hook.
+
+A nonfatal commit warning can indicate that runtime changed without a save.
+Renewal reports that partial outcome and asks for administrator assistance before
+reboot. Saved-password verification also refuses ambiguous, disabled, malformed
+or unsafe startup files. It does not roll back administrative changes or provide
+a transaction spanning concurrent runtime commits and filesystem writes.

@@ -98,7 +98,14 @@ sub get_lastlogin_time {
     my ($user) = @_;
 
     my @lines;
-    run3( \@LAST_CMD, undef, \@lines );
+    my ($error, $status);
+    # Minimal images may provide BusyBox last without ISO-format support.
+    # History is optional; its diagnostics must not corrupt provider JSON.
+    eval {
+        run3( \@LAST_CMD, undef, \@lines, \$error );
+        $status = $?;
+    };
+    return ( "never logged in" ) if $@ || $status != 0;
     foreach my $line (@lines) {
         chomp($line);
         if ( $line =~ /^$user/ ) {

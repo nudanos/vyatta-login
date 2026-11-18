@@ -1,3 +1,13 @@
+vyatta-login (2.46) trixie; urgency=medium
+
+  * Verify renewed passwords are applied and saved before reporting success.
+  * Report partial changes when commit warnings or save failures occur.
+  * Use unique private sessions and clean up interrupted setup attempts.
+  * Keep login state available when optional history tools lack GNU options.
+  * Run password RPC and persistence regression tests during package builds.
+
+ -- Jon Fernandez <jon@fernandez.tech>  Wed, 18 Nov 2026 10:00:00 -0700
+
 vyatta-login (2.45) trixie; urgency=medium
 
   * Require configd 2.17 so upgrades refresh an active daemon before

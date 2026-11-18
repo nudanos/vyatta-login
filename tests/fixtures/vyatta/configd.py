@@ -28,7 +28,10 @@ class Client:
 
     def commit(self, message):
         self.running = self.candidate
+        self.startup.write_text('system { login { user tester { authentication { encrypted-password "' +
+                                self.running + '"; } } } }\n')
         print(json.dumps(self.path))
+        return ""
 
     def session_teardown(self):
         pass

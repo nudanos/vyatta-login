@@ -55,7 +55,7 @@ Package: vyatta-login
 Architecture: any
 Depends: 
  adduser,
- configd (>= 2.18),
+ configd (>= 2.17),
  libpam-modules,
  libpam-modules-bin,
  libpam-runtime (>= 1.0.1-5),
@@ -75,7 +75,7 @@ Depends:
  vyatta-debian-system-config,
  vyatta-debian-systemd-config,
  vyatta-util (>= 0.16),
- vyatta-cfg (>= 1.36),
+ vyatta-cfg,
  vyatta-password-renewal (>= 2.44),
  ${misc:Depends},
  ${perl:Depends},

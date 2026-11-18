@@ -1,7 +1,8 @@
 vyatta-login (2.46) trixie; urgency=medium
 
-  * Persist renewed passwords with a selective, synchronized startup update.
-  * Require startup-writer locking in configd and the legacy save utility.
+  * Verify renewed passwords are applied and saved before reporting success.
+  * Report partial changes when commit warnings or save failures occur.
+  * Use unique private sessions and clean up interrupted setup attempts.
   * Keep login state available when optional history tools lack GNU options.
   * Run password RPC and persistence regression tests during package builds.
 

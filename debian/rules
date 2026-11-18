@@ -19,7 +19,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	prove t/
 	python3 tests/password-rpc.py
 	python3 tests/password-persistence.py
-	python3 tests/password-rpc-persistence.py
+	python3 tests/password-rpc-autosave.py
 endif
 
 # *.yang files and related templates are distributed via debian install files
